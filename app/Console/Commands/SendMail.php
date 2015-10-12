@@ -104,7 +104,8 @@ class SendMail extends Command
                                 ]
                             ]
                         ]
-                    ]
+                    ],
+                    'size' => 500
                 ]);
 
                 $contract_ids = [];
@@ -119,8 +120,9 @@ class SendMail extends Command
 
                 $list = Contract::whereIn('id', $contract_ids)->with('organization')->get();
 
-                Mail::send('emails.contracts', ['list' => $list], function ($m) use ($list) {
-
+                Mail::send('emails.contracts', ['list' => $list], function ($m) use ($list, $search, $contract_ids) {
+                    $m->from('noreply@infotendermail.ru', 'infotendermail');
+                    $m->to($search->user->email, $search->user->name)->subject('Контракты с infotendermail.ru #'. sizeof($contract_ids));
                 });
             }
         }
