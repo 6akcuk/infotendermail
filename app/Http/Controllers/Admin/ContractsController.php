@@ -107,7 +107,8 @@ class ContractsController extends Controller
                         'must_not' => $must_not
                     ]
                 ]
-            ]
+            ],
+            'size' => 500
         ]);
 
         var_dump($results['hits']['hits']);
