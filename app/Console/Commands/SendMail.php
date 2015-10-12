@@ -45,7 +45,7 @@ class SendMail extends Command
     {
         $elastic = ClientBuilder::create()->build();
 
-        $searches = ContractSearchCriteria::with('user')->all();
+        $searches = ContractSearchCriteria::with('user')->get();
         foreach ($searches as $search) {
             $criteria = json_decode($search->criterias, true);
 
