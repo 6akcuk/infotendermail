@@ -31,9 +31,9 @@ class Kernel extends ConsoleKernel
                  ->hourly();
 
         $schedule->command('build:index')
-                 ->dailyAt('07:00');
+                 ->dailyAt('04:00');
 
         $schedule->command('send:mail')
-                 ->dailyAt('08:00');
+                 ->dailyAt('05:00');
     }
 }
