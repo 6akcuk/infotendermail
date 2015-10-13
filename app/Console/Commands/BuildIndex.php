@@ -111,6 +111,7 @@ class BuildIndex extends Command
             'body' => [
                 'id' => $contract->id,
                 'name' => $contract->name,
+                'organization' => $contract->organization->name,
                 'region_id' => $contract->organization->region_id,
                 'status' => $contract->status,
                 'type' => $contract->type,

@@ -21,7 +21,7 @@
                                             @foreach ($list as $contract)
                                             <tr>
                                                 <td>
-                                                    <a href="{{ $contract->link }}">
+                                                    <a href="{{ !stristr($contract->link, 'zakupki.gov.ru') ? 'http://zakupki.gov.ru/'. $contract->link : $contract->link }}">
                                                         {{ $contract->name }}
                                                     </a>
                                                 </td>
@@ -38,7 +38,7 @@
                     </tr>
                     <tr>
                         <td class="content-block">
-                            <a href="{{ route('admin.contracts.view', ['date' => date('Y-m-d')]) }}">Просмотреть в браузере</a>
+                            <a href="http://infotendermail.ru/{{ route('admin.contracts.view', ['date' => date('Y-m-d')], false) }}">Просмотреть в браузере</a>
                         </td>
                     </tr>
                     <tr>

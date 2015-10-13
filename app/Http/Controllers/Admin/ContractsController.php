@@ -102,16 +102,34 @@ class ContractsController extends Controller
             'type' => 'contract',
             'body' => [
                 'query' => [
-                    'bool' => [
-                        'should' => $should,
-                        'must_not' => $must_not
+                    'filtered' => [
+                        'query' => [
+                            'bool' => [
+                                'should' => $should,
+                                'must_not' => $must_not
+                            ]
+                        ],
+                        'filter' => [
+                            'terms' => [
+                                'region_id' => $criterias['regions']
+                            ]
+                        ]
                     ]
                 ]
             ],
             'size' => 500
         ]);
 
-        var_dump($results['hits']['hits']);
+        $contract_ids = [];
+        foreach ($results['hits']['hits'] as $contract) {
+            $contract_ids[] = $contract['_id'];
+        }
+
+        $list = Contract::whereIn('id', $contract_ids)
+                ->whereRaw('finished_at > NOW()')
+                ->with('organization')->get();
+
+        return view('admin.contracts.view', compact('list'));
     }
 
     public function view(Request $request)
