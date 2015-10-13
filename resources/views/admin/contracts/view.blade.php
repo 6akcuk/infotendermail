@@ -21,7 +21,7 @@
                     @foreach ($list as $contract)
                     <tr>
                         <td>
-                            <a href="{{ !stristr($contract->link, 'zakupki.gov.ru') ? 'http://zakupki.gov.ru/'. $contract->link : $contract->link }}">
+                            <a href="{{ !stristr($contract->link, 'zakupki.gov.ru') ? 'http://zakupki.gov.ru'. $contract->link : $contract->link }}">
                                 {{ $contract->name }}
                             </a>
                         </td>
