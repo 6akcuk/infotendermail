@@ -20,9 +20,11 @@
       </div>
     </div>
 
+    <div class="hr-line-dashed"></div>
+
     <!-- Искать слова и фразы Form Input -->
     <div class="form-group {{ $errors->has('match') ? 'has-error' : '' }}">
-      {!! Form::label('match', 'Искать слова и фразы:', ['class' => 'col-sm-2 control-label']) !!}
+      {!! Form::label('match', 'Искать слова и фразы в названии контракта:', ['class' => 'col-sm-2 control-label']) !!}
       <div class="col-sm-10">
         {!! Form::text('match', null, ['class' => 'form-control']) !!}
         {!! $errors->first('match', '<span class="help-block">:message</span>') !!}
@@ -31,12 +33,34 @@
 
     <!-- Исключить слова и фразы Form Input -->
     <div class="form-group {{ $errors->has('exclude') ? 'has-error' : '' }}">
-      {!! Form::label('exclude', 'Исключить слова и фразы:', ['class' => 'col-sm-2 control-label']) !!}
+      {!! Form::label('exclude', 'Исключить слова и фразы в названии контракта:', ['class' => 'col-sm-2 control-label']) !!}
       <div class="col-sm-10">
         {!! Form::text('exclude', null, ['class' => 'form-control']) !!}
         {!! $errors->first('exclude', '<span class="help-block">:message</span>') !!}
       </div>
     </div>
+
+    <div class="hr-line-dashed"></div>
+
+    <!-- Искать слова и фразы в названии организации Form Input -->
+    <div class="form-group {{ $errors->has('match_org') ? 'has-error' : '' }}">
+      {!! Form::label('match_org', 'Искать слова и фразы в названии организации:', ['class' => 'col-sm-2 control-label']) !!}
+      <div class="col-sm-10">
+        {!! Form::text('match_org', null, ['class' => 'form-control']) !!}
+        {!! $errors->first('match_org', '<span class="help-block">:message</span>') !!}
+      </div>
+    </div>
+
+    <!-- Исключить слова и фразы в названии организации Form Input -->
+    <div class="form-group {{ $errors->has('exclude_org') ? 'has-error' : '' }}">
+      {!! Form::label('exclude_org', 'Исключить слова и фразы в названии организации:', ['class' => 'col-sm-2 control-label']) !!}
+      <div class="col-sm-10">
+        {!! Form::text('exclude_org', null, ['class' => 'form-control']) !!}
+        {!! $errors->first('exclude_org', '<span class="help-block">:message</span>') !!}
+      </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
 
     <div class="form-group">
         <div class="col-sm-10 col-sm-offset-2">
@@ -62,7 +86,7 @@
     <script src="js/autocomplete-ui.min.js"></script>
     <script src="js/plugins/tagsinput/tagsinput.js"></script>
     <script>
-        $('#match, #exclude').tagsInput({
+        $('#match, #exclude, #match_org, #exclude_org').tagsInput({
             autocomplete_url: '/api/tags',
             defaultText: 'Добавьте слова',
             width: 'auto',

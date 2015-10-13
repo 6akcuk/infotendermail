@@ -45,6 +45,8 @@ class ContractsController extends Controller
         $criterias['regions'] = $request->regions;
         $criterias['match'] = $request->match;
         $criterias['exclude'] = $request->exclude;
+        $criterias['match_org'] = $request->match_org;
+        $criterias['exclude_org'] = $request->exclude_org;
 
         if (!$options) {
             $options = new ContractSearchCriteria();
@@ -75,6 +77,8 @@ class ContractsController extends Controller
 
         $match = explode(',', $criterias['match']);
         $not = explode(',', $criterias['exclude']);
+        $match_org = explode(',', $criterias['match_org']);
+        $not_org = explode(',', $criterias['exclude_org']);
 
         foreach ($match as $m) {
             $should[] = [
@@ -97,24 +101,48 @@ class ContractsController extends Controller
             ];
         }
 
+        foreach ($match_org as $m) {
+            $should[] = [
+                'match' => [
+                    'organization'  => [
+                        'query' => $m,
+                        'operator' => 'and'
+                    ]
+                ]
+            ];
+        }
+        foreach ($not_org as $n) {
+            $must_not[] = [
+                'match' => [
+                    'organization' => [
+                        'query' => $n,
+                        'operator' => 'and'
+                    ]
+                ]
+            ];
+        }
+
+        if (is_array($criterias['regions']) && sizeof($criterias['regions']) > 0) {
+            $filtered['filter'] = [
+                'terms' => [
+                    'region_id' => $criterias['regions']
+                ]
+            ];
+        }
+
+        $filtered['query'] = [
+            'bool' => [
+                'should' => $should,
+                'must_not' => $must_not
+            ]
+        ];
+
         $results = $client->search([
             'index' => 'tenders',
             'type' => 'contract',
             'body' => [
                 'query' => [
-                    'filtered' => [
-                        'query' => [
-                            'bool' => [
-                                'should' => $should,
-                                'must_not' => $must_not
-                            ]
-                        ],
-                        'filter' => [
-                            'terms' => [
-                                'region_id' => $criterias['regions']
-                            ]
-                        ]
-                    ]
+                    'filtered' => $filtered
                 ]
             ],
             'size' => 500
