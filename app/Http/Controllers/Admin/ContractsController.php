@@ -85,7 +85,7 @@ class ContractsController extends Controller
                 'match' => [
                     'name'  => [
                         'query' => $m,
-                        'operator' => 'and'
+                        'operator' => 'or'
                     ]
                 ]
             ];
@@ -106,7 +106,7 @@ class ContractsController extends Controller
                 'match' => [
                     'organization'  => [
                         'query' => $m,
-                        'operator' => 'and'
+                        'operator' => 'or'
                     ]
                 ]
             ];
