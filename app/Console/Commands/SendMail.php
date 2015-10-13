@@ -59,11 +59,13 @@ class SendMail extends Command
 
                 $match = explode(',', $criteria['match']);
                 $not = explode(',', $criteria['exclude']);
+                $match_org = explode(',', $criteria['match_org']);
+                $not_org = explode(',', $criteria['exclude_org']);
 
                 foreach ($match as $m) {
                     $should[] = [
                         'match' => [
-                            'name'  => [
+                            'name.russian'  => [
                                 'query' => $m,
                                 'operator' => 'and'
                             ]
@@ -73,7 +75,31 @@ class SendMail extends Command
                 foreach ($not as $n) {
                     $must_not[] = [
                         'match' => [
-                            'name' => [
+                            'name.russian' => [
+                                'query' => $n,
+                                'operator' => 'and'
+                            ]
+                        ]
+                    ];
+                }
+                foreach ($match_org as $m) {
+                    if (!$m) continue;
+
+                    $should[] = [
+                        'match' => [
+                            'organization.russian' => [
+                                'query' => $m,
+                                'operator' => 'and'
+                            ]
+                        ]
+                    ];
+                }
+                foreach ($not_org as $n) {
+                    if (!$n) continue;
+
+                    $must_not[] = [
+                        'match' => [
+                            'organization.russian' => [
                                 'query' => $n,
                                 'operator' => 'and'
                             ]
@@ -83,29 +109,35 @@ class SendMail extends Command
 
                 $this->info('Поиск контрактов');
 
+                if (is_array($criteria['regions']) && sizeof($criteria['regions']) > 0) {
+                    $filtered['filter'] = [
+                        'terms' => [
+                            'region_id' => $criteria['regions']
+                        ]
+                    ];
+                }
+
+                $filtered['query'] = [
+                        'bool' => [
+                                'should' => $should,
+                                'must_not' => $must_not,
+                        ]
+                ];
+                $filtered['filter']['range'] = [
+                    'id' => [
+                        'gt' => $max_id
+                    ]
+                ];
+
                 $contracts = $elastic->search([
                     'index' => 'tenders',
                     'type' => 'contract',
                     'body' => [
                         'query' => [
-                            'filtered' => [
-                                'query' => [
-                                    'bool' => [
-                                        'should' => $should,
-                                        'must_not' => $must_not
-                                    ]
-                                ],
-                                'filter' => [
-                                    'range' => [
-                                        'id' => [
-                                            'gt' => $max_id
-                                        ]
-                                    ]
-                                ]
-                            ]
+                            'filtered' => $filtered
                         ]
                     ],
-                    'size' => 500
+                    'size' => 2000
                 ]);
 
                 $contract_ids = [];

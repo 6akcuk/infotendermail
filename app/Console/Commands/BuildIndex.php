@@ -59,7 +59,19 @@ class BuildIndex extends Command
                 'type' => 'contract',
                 'body' => [
                     'properties' => [
+                        'region_id' => [
+                            'type' => 'integer'
+                        ],
                         'name' => [
+                            'type' => 'string',
+                            'fields' => [
+                                'russian' => [
+                                    'type' => 'string',
+                                    'analyzer' => 'russian'
+                                ]
+                            ]
+                        ],
+                        'organization' => [
                             'type' => 'string',
                             'fields' => [
                                 'russian' => [

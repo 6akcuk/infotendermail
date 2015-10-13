@@ -74,6 +74,8 @@ class ContractsController extends Controller
 
         $must_not = [];
         $should = [];
+        $must_not_org = [];
+        $should_org = [];
 
         $match = explode(',', $criterias['match']);
         $not = explode(',', $criterias['exclude']);
@@ -81,19 +83,23 @@ class ContractsController extends Controller
         $not_org = explode(',', $criterias['exclude_org']);
 
         foreach ($match as $m) {
+            if (!$m) continue;
+
             $should[] = [
                 'match' => [
-                    'name'  => [
+                    'name.russian' => [
                         'query' => $m,
-                        'operator' => 'or'
+                        'operator' => 'and'
                     ]
                 ]
             ];
         }
         foreach ($not as $n) {
+            if (!$n) continue;
+
             $must_not[] = [
                 'match' => [
-                    'name' => [
+                    'name.russian' => [
                         'query' => $n,
                         'operator' => 'and'
                     ]
@@ -102,19 +108,23 @@ class ContractsController extends Controller
         }
 
         foreach ($match_org as $m) {
+            if (!$m) continue;
+
             $should[] = [
                 'match' => [
-                    'organization'  => [
+                    'organization.russian' => [
                         'query' => $m,
-                        'operator' => 'or'
+                        'operator' => 'and'
                     ]
                 ]
             ];
         }
         foreach ($not_org as $n) {
+            if (!$n) continue;
+
             $must_not[] = [
                 'match' => [
-                    'organization' => [
+                    'organization.russian' => [
                         'query' => $n,
                         'operator' => 'and'
                     ]
@@ -124,16 +134,16 @@ class ContractsController extends Controller
 
         if (is_array($criterias['regions']) && sizeof($criterias['regions']) > 0) {
             $filtered['filter'] = [
-                'terms' => [
-                    'region_id' => $criterias['regions']
-                ]
+                    'terms' => [
+                            'region_id' => $criterias['regions']
+                    ]
             ];
         }
 
         $filtered['query'] = [
             'bool' => [
                 'should' => $should,
-                'must_not' => $must_not
+                'must_not' => $must_not,
             ]
         ];
 
