@@ -154,7 +154,7 @@ class ContractsController extends Controller
         }
 
         $list = Contract::whereIn('id', $contract_ids)
-                ->whereRaw('finished_at > NOW()')
+                ->whereRaw('(finished_at > NOW() OR finished_at IS NULL)')
                 ->with('organization')->get();
 
         return view('admin.contracts.view', compact('list'));
