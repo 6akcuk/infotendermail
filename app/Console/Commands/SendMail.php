@@ -123,9 +123,11 @@ class SendMail extends Command
                                 'must_not' => $must_not,
                         ]
                 ];
-                $filtered['filter']['bool']['must']['range'] = [
-                    'id' => [
-                        'gt' => $max_id
+                $filtered['filter']['bool']['must'][] = [
+                    'range' => [
+                        'id' => [
+                            'gt' => $max_id
+                        ]
                     ]
                 ];
 
