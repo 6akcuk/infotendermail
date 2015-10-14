@@ -110,7 +110,7 @@ class SendMail extends Command
                 $this->info('Поиск контрактов');
 
                 if (is_array($criteria['regions']) && sizeof($criteria['regions']) > 0) {
-                    $filtered['filter'] = [
+                    $filtered['filter']['bool']['must'][] = [
                         'terms' => [
                             'region_id' => $criteria['regions']
                         ]
@@ -123,7 +123,7 @@ class SendMail extends Command
                                 'must_not' => $must_not,
                         ]
                 ];
-                $filtered['filter']['range'] = [
+                $filtered['filter']['bool']['must']['range'] = [
                     'id' => [
                         'gt' => $max_id
                     ]
