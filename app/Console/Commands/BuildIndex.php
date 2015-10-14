@@ -59,6 +59,9 @@ class BuildIndex extends Command
                 'type' => 'contract',
                 'body' => [
                     'properties' => [
+                        'id' => [
+                            'type' => 'integer'
+                        ],
                         'region_id' => [
                             'type' => 'integer'
                         ],
