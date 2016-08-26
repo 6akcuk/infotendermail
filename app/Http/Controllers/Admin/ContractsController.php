@@ -147,7 +147,7 @@ class ContractsController extends Controller
             ]
         ];
 
-        dd($filtered);
+        //dd($filtered);
 
         $results = $client->search([
             'index' => 'tenders',
@@ -159,6 +159,8 @@ class ContractsController extends Controller
             ],
             'size' => 500
         ]);
+
+        //dd($results);
 
         $contract_ids = [];
         foreach ($results['hits']['hits'] as $contract) {
