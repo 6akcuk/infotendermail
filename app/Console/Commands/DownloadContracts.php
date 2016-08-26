@@ -181,7 +181,7 @@ class DownloadContracts extends Command
                                                             'name' => $address[2]
                                                     ]);
                                                 }
-
+                                                
                                                 $town = Town::where('name', $address[3])->where('region_id', $region->id)->first();
                                                 if (!$town) {
                                                     $town = Town::create([
@@ -259,17 +259,19 @@ class DownloadContracts extends Command
                                                 ]);
                                             }
 
-                                            $town = Town::where('name', $address[3])->where('region_id', $region->id)->first();
-                                            if (!$town) {
-                                                $town = Town::create([
-                                                        'region_id' => $region->id,
-                                                        'name' => $address[3]
-                                                ]);
+                                            if (isset($address[3])) {
+                                                $town = Town::where('name', $address[3])->where('region_id', $region->id)->first();
+                                                if (!$town) {
+                                                    $town = Town::create([
+                                                            'region_id' => $region->id,
+                                                            'name' => $address[3]
+                                                    ]);
+                                                }
                                             }
 
                                             $organization->country_id = $country->id;
                                             $organization->region_id = $region->id;
-                                            $organization->town_id = $town->id;
+                                            $organization->town_id = isset($town) ? $town->id : null;
                                             $organization->address = $valueColumn;
 
                                             break;
