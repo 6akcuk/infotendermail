@@ -67,7 +67,7 @@ class DownloadContracts extends Command
             $response = $this->makeRequest($client, $p);
             Log::info('Going to page'. $p);
 
-            $repeatSensor = $this->parseTenders($client, new Crawler($nextPage->getBody()->getContents()));
+            $repeatSensor = $this->parseTenders($client, new Crawler($response->getBody()->getContents()));
 
             if ($repeatSensor >= 10) break;
         }
