@@ -87,9 +87,9 @@ class BuildIndex extends Command
                 ]
             ]);
 
-            Contract::chunk(100, function($contracts) use ($self) {
+            Contract::chunk(1000, function($contracts) {
                 foreach ($contracts as $contract) {
-                    $self->put($contract);
+                    $this->put($contract);
                 }
             });
         } else {
@@ -109,9 +109,9 @@ class BuildIndex extends Command
 
             $last_id = $result['hits']['hits'][0]['_id'];
 
-            Contract::where('id', '>', $last_id)->chunk(100, function($contracts) use ($self) {
+            Contract::where('id', '>', $last_id)->chunk(1000, function($contracts) {
                 foreach ($contracts as $contract) {
-                    $self->put($contract);
+                    $this->put($contract);
                 }
             });
         }

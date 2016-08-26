@@ -52,85 +52,68 @@ class DownloadContracts extends Command
             'base_uri' => 'http://zakupki.gov.ru/',
             'cookies' => true,
             'headers' => [
-                'User-Agent' => 'testing/1.0'
+                'User-Agent' => 'Mozilla'
             ]
         ]);
 
-        Log::info('Начало загрузки контрактов: подключаемся к zakupki.gov.ru');
+        Log::info('Connecting..');
 
-        $response = $client->get('epz/order/quicksearch/search.html?searchString=');
-
+        $response = $this->makeRequest($client, 1);
         $crawler = new Crawler($response->getBody()->getContents(), 'http://zakupki.gov.ru/');
 
-        $this->zakupki($client, $crawler);
+        $this->parseTenders($client, $crawler);
 
-        $form = $crawler->selectButton('Обновить результаты поиска')->form();
+        for ($p = 2; $p <= 40; $p++) {
+            $response = $this->makeRequest($client, $p);
+            Log::info('Going to page'. $p);
 
-        foreach (['FZ_44', 'FZ_223'] as $fz) {
-            for ($p = 2; $p <= 10; $p++) {
-                //$this->info($form['placeOfSearch']);
+            $repeatSensor = $this->parseTenders($client, new Crawler($nextPage->getBody()->getContents()));
 
-                $form->disableValidation();
-
-                $form->setValues([
-                        'placeOfSearch' => $fz,
-                        'pageNo' => $p,
-                        'recordsPerPage' => '_100',
-                        'isPaging' => true
-                ]);
-
-                Log::info('Переходим на страницу '. $p);
-
-                $nextPage = $client->get($form->getUri());
-
-                $repeatSensor = $this->zakupki($client, new Crawler($nextPage->getBody()->getContents()));
-
-                if ($repeatSensor >= 10) break;
-            }
+            if ($repeatSensor >= 10) break;
         }
     }
 
-    protected function zakupki(Client $client, Crawler $crawler)
+    protected function makeRequest(Client $client, $pageNumber = 1)
+    {
+        return $client->request('GET', 'epz/order/quicksearch/search.html', [
+            'query' => [
+                'recordsPerPage' => '_50',
+                'fz44' => 'on',
+                'fz223' => 'on',
+                'af' => 'on',
+                'ca' => 'on',
+                'pageNumber' => $pageNumber,
+                'sortBy' => 'PUBLISH_DATE'
+            ]
+        ]);
+    }
+
+    protected function parseTenders(Client $client, Crawler $crawler)
     {
         $repeatSensor = 0;
-        $self = $this;
-        //$elastic = ClientBuilder::create()->build();
 
-        //$indices = $elastic->indices();
-        /*if (!$indices->exists(['index' => 'tenders']))
-            $elastic->indices()->create([
-                'index' => 'tenders',
-                'body' => [
-                    'settings' => [
-                        'number_of_shards' => 1,
-                        'number_of_replicas' => 0
-                    ]
-                ]
-            ]);*/
-
-        $crawler->filter('#exceedSphinxPageSizeDiv div.registerBox')->each(function(Crawler $node, $i) use ($client, &$repeatSensor, $self) {
+        $crawler->filter('div.registerBox')->each(function(Crawler $node, $i) use ($client, &$repeatSensor) {
             $systemId = str_replace('№ ', '', trim($node->filter('td.descriptTenderTd > dl > dt > a')->text()));
 
             $organizationNode = $node->filter('dd.nameOrganization > a');
             $organizationName = trim($organizationNode->text());
             $organizationUrl = trim($organizationNode->attr('href'));
 
-            Log::info('Node data', [$node->html()]);
+            //Log::info('Node data', [$node->html()]);
 
-            $contractNode = $node->filter('td.descriptTenderTd > dl > dd')->eq(1)->filter('a');
-            $contractName = trim($contractNode->text());
-            $contractUrl = trim($contractNode->attr('href'));
+            $contractName = trim($node->filter('td.descriptTenderTd > dl > dd')->eq(1)->text());
+            $contractUrl = $node->filter('td.descriptTenderTd > dl > dt > a')->attr('href');
             $contractType = trim($node->filter('td.tenderTd > dl > dt')->text());
             $contractStatus = ($node->filter('td.tenderTd > dl > dd')->count())
                                 ? trim($node->filter('td.tenderTd > dl > dd')->text())
                                 : '';
 
-            Log::info('Обработка нового контракта', [
+            /*Log::info('Обработка нового контракта', [
                 'org_name' => $organizationName,
                 'org_url' => $organizationUrl,
                 'name' => $contractName,
                 'url' => $contractUrl
-            ]);
+            ]);*/
 
             $contract = Contract::where('system_id', $systemId)->first();
             if (!$contract) {
@@ -139,23 +122,23 @@ class DownloadContracts extends Command
                 // Search organization in database
                 $organization = Organization::where('url', $organizationUrl)->first();
                 if (!$organization) {
-                    Log::info('Организация не найдена, добавляем в базу.');
+                    //Log::info('Организация не найдена, добавляем в базу.');
 
                     $organization = new Organization();
                     $organization->name = $organizationName;
                     $organization->url = $organizationUrl;
 
-                    $self->info($organizationUrl);
+                    $this->info($organizationUrl);
 
                     $organizationResponse = $client->get($organizationUrl);
 
                     $organizationCrawler = new Crawler($organizationResponse->getBody()->getContents());
 
-                    Log::info('Информация по организации загружена.');
+                    //Log::info('Информация по организации загружена.');
 
                     // Federal Law 223
-                    if ($node->filter('td.amountTenderTd > p > span.fz223')->count()) {
-                        $organizationCrawler->filter('div.noticeTabBoxWrapper > table tr')->each(function(Crawler $row, $j) use (&$organization, $self) {
+                    if (preg_match("/223\/ppa/", $organizationUrl)) {
+                        $organizationCrawler->filter('div.noticeTabBoxWrapper > table tr')->each(function(Crawler $row, $j) use (&$organization) {
                             if ($row->children('td')->count() > 1) {
                                 $nameColumn = trim($row->children('td')->eq(0)->text());
                                 $valueColumn = trim($row->children('td')->eq(1)->text());
@@ -178,26 +161,17 @@ class DownloadContracts extends Command
                                             $organization->okato = $valueColumn;
                                             break;
                                         case 'Адрес (место нахождения)':
-                                            $address = array_map(function ($value) {
+                                            $addresses = array_map(function ($value) {
                                                 return trim($value);
                                             }, explode(',', $valueColumn));
 
-                                            if ($address[0] > 0) {
-                                                array_unshift($address, 'Российская Федерация');
-                                            }
+                                            $address = collect($addresses);
+                                            $address->forget('Российская Федерация');
 
-                                            $self->info(implode(',', $address));
+                                            $organization->postal_code = $address[0];
+                                            $organization->country_id = 1;
 
-                                            $organization->postal_code = $address[1];
-
-                                            $country = Country::where('name', $address[0])->first();
-                                            if (!$country) {
-                                                $country = Country::create([
-                                                        'name' => $address[0]
-                                                ]);
-                                            }
-
-                                            $organization->country_id = $country->id;
+                                            $country = Country::find(1);
 
                                             if (isset($address[3])) {
                                                 $region = Region::where('name', $address[2])->where('country_id', $country->id)->first();
@@ -244,8 +218,8 @@ class DownloadContracts extends Command
                         });
                     }
                     // Federal Law 44
-                    elseif ($node->filter('td.amountTenderTd > p > span.fz44')->count()) {
-                        $organizationCrawler->filter('td.icePnlGrdCol > table tr')->each(function(Crawler $row, $j) use (&$organization, $self) {
+                    else {
+                        $organizationCrawler->filter('td.icePnlTbSetCnt table tr')->each(function(Crawler $row, $j) use ($organization) {
                             if ($row->children('td')->count() > 1) {
                                 $nameColumn = trim($row->children('td')->eq(0)->text());
                                 $valueColumn = trim($row->children('td')->eq(1)->text());
@@ -272,17 +246,11 @@ class DownloadContracts extends Command
                                                 return trim($value);
                                             }, explode(',', $valueColumn));
 
-                                            $self->info($valueColumn);
+                                            $this->info($valueColumn);
 
                                             $organization->postal_code = $address[1];
-
-                                            $country = Country::where('name', $address[0])->first();
-                                            if (!$country) {
-                                                $country = Country::create([
-                                                        'name' => $address[0]
-                                                ]);
-                                            }
-
+                                            $country = Country::where('name', 'Российская Федерация')->first();
+                                            
                                             $region = Region::where('name', $address[2])->where('country_id', $country->id)->first();
                                             if (!$region) {
                                                 $region = Region::create([
@@ -326,22 +294,24 @@ class DownloadContracts extends Command
                         });
                     }
 
+                    //dd($organization);
+
                     $organization->save();
 
-                    Log::info('Организация добавлена в базу.');
+                    //Log::info('Организация добавлена в базу.');
 
-                    $self->info('Организация '. $organizationName);
+                    $this->info('Organization '. $organizationName);
                 }
                 else {
-                    Log::info('Организация найдена в базе.');
+                    //Log::info('Организация найдена в базе.');
                 }
 
-                Log::info('Переходим на страницу контракта.');
+                //Log::info('Переходим на страницу контракта.');
 
                 $contractResponse = $client->get($contractUrl);
                 $contractCrawler = new Crawler($contractResponse->getBody()->getContents());
 
-                Log::info('Страница контракта загружена.');
+                //Log::info('Страница контракта загружена.');
 
                 $contract = new Contract();
                 $contract->organization_id = $organization->id;
@@ -353,77 +323,67 @@ class DownloadContracts extends Command
 
                 $price = str_replace(
                     ',', '.', preg_replace(
-                        "/([^0-9\.\,]*)/", '', trim($node->filter('td.amountTenderTd > dl > dt')->text())
+                        "/([^0-9\.\,]*)/", '', trim($node->filter('td.tenderTd > dd')->eq(1)->text())
                     )
                 );
 
                 $contract->price = $price;
 
                 // Federal Law 223
-                if ($node->filter('td.amountTenderTd > p > span.fz223')->count()) {
-                    $contractCrawler->filter('div.noticeTabBoxWrapper > table tr')->each(function (Crawler $row, $j) use (&$contract) {
-                        if ($row->filter('td')->count() > 1) {
-                            $nameColumn = trim($row->filter('td')->eq(0)->text());
-                            $valueColumn = trim($row->filter('td')->eq(1)->text());
+                $contractCrawler->filter('div.noticeTabBoxWrapper > table tr')->each(function (Crawler $row, $j) use ($contract, $contractUrl) {
+                    if ($row->filter('td')->count() > 1) {
+                        $nameColumn = trim($row->filter('td')->eq(0)->text());
+                        $valueColumn = trim($row->filter('td')->eq(1)->text());
 
-                            if ($valueColumn) {
-                                if (stristr('подачи заявок', $nameColumn)) {
-                                    preg_match("/(\d{2}[\.]{1}\d{2}[\.]{1}\d{4}[.*]{1}[в]{1}[.*]{1}\d{2}:\d{2})/ui", $valueColumn, $date);
+                        if (!$valueColumn) return;
 
-                                    $this->info($valueColumn);
-                                    $this->info(var_export($date, true));
-                                    exit;
+                        if (preg_match("/223\/purchase/", $contractUrl)) {
+                            if (preg_match('/подачи заявок/i', $nameColumn)) {
+                                preg_match("/(\d{2}\.\d{2}\.\d{4}\sв\s\d{2}:\d{2})/ui", $valueColumn, $date);
 
-                                    $valueColumn = str_replace('в', '', $date[1]);
+                                if (!isset($date[1])) return; 
 
-                                    $finishDate = new Carbon($valueColumn);
-                                    $contract->finished_at = $finishDate;
-                                } elseif (stristr('подведения итогов', $nameColumn)) {
-                                    preg_match("/(\d{2}[\.]{1}\d{2}[\.]{1}\d{4}[ ]{1}[в]{1}[ ]{1}\d{2}:\d{2})/ui", $valueColumn, $date);
+                                $valueColumn = str_replace('в', '', $date[1]);
 
-                                    $valueColumn = str_replace('в', '', $date[1]);
+                                $finishDate = new Carbon($valueColumn);
+                                $contract->finished_at = $finishDate;
+                            } elseif (preg_match('/подведения итогов/i', $nameColumn)) {
+                                preg_match("/(\d{2}[\.]{1}\d{2}[\.]{1}\d{4}[ ]{1}[в]{1}[ ]{1}\d{2}:\d{2})/ui", $valueColumn, $date);
 
-                                    $resultDate = new Carbon($valueColumn);
-                                    $contract->results_at = $resultDate;
-                                }
+                                if (!isset($date[1])) return;
+
+                                $valueColumn = str_replace('в', '', $date[1]);
+
+                                $resultDate = new Carbon($valueColumn);
+                                $contract->results_at = $resultDate;
                             }
                         }
-                    });
-                }
-                // Federal Law 44
-                elseif ($node->filter('td.amountTenderTd > p > span.fz44')->count()) {
-                    $contractCrawler->filter('div.noticeTabBoxWrapper > table tr')->each(function (Crawler $row, $j) use (&$contract) {
-                        if ($row->filter('td')->count() > 1) {
-                            $nameColumn = trim($row->filter('td')->eq(0)->text());
-                            $valueColumn = trim($row->filter('td')->eq(1)->text());
+                        else {
+                            if (
+                                preg_match('/Дата и время окончания подачи заявок/i', $nameColumn) ||
+                                preg_match('/Дата и время окончания подачи котировочных заявок/i', $nameColumn)
+                            ) {
+                                $valueColumn = str_replace('в', '', $valueColumn);
 
-                            if ($valueColumn) {
-                                if (
-                                    stristr('Дата и время окончания подачи заявок', $nameColumn) ||
-                                    stristr('Дата и время окончания подачи котировочных заявок', $nameColumn)
-                                ) {
-                                    $valueColumn = str_replace('в', '', $valueColumn);
+                                $finishDate = new Carbon($valueColumn);
+                                $contract->finished_at = $finishDate;
+                            } elseif (
+                                preg_match('/Дата проведения аукциона в электронной форме/i', $nameColumn) ||
+                                preg_match('/Дата и время вскрытия конвертов с заявками/i', $nameColumn)
+                            ) {
+                                // Не ставим точную дату, так как скрипт проверять будет на следующий день
+                                $valueColumn = str_replace('в', '', $valueColumn);
 
-                                    $finishDate = new Carbon($valueColumn);
-                                    $contract->finished_at = $finishDate;
-                                } elseif (
-                                    stristr('Дата проведения аукциона в электронной форме', $nameColumn) ||
-                                    stristr('Дата и время вскрытия конвертов с заявками ', $nameColumn)
-                                ) {
-                                    // Не ставим точную дату, так как скрипт проверять будет на следующий день
-                                    $valueColumn = str_replace('в', '', $valueColumn);
-
-                                    $resultDate = new Carbon($valueColumn);
-                                    $contract->results_at = $resultDate;
-                                }
+                                $resultDate = new Carbon($valueColumn);
+                                $contract->results_at = $resultDate;
                             }
                         }
-                    });
-                }
+                    }
+                });
 
                 $contract->save();
 
-                $self->info('Контракт '. $systemId .' '. $contractName);
+                $this->info('Контракт '. $systemId .' '. $contractName);
 
                 Log::info('Контракт сохранен в базу.');
             } else {
@@ -431,6 +391,8 @@ class DownloadContracts extends Command
 
                 Log::info('Контракт найден в базе.');
             }
+
+            usleep(rand(200, 2000) * 1000); // sleep for random time
         });
 
         return $repeatSensor;
