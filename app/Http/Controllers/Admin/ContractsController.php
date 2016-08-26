@@ -147,6 +147,8 @@ class ContractsController extends Controller
             ]
         ];
 
+        dd($filtered);
+
         $results = $client->search([
             'index' => 'tenders',
             'type' => 'contract',
