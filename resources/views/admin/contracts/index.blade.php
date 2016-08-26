@@ -6,7 +6,7 @@
     <li>Контракты</li>
 @endsection
 
-@section('ibox-title', 'Список контрактов')
+@section('ibox-title', 'Список контрактов ('. $total .')')
 
 @section('ibox-content')
     <div class="row">

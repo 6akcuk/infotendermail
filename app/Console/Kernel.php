@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Inspire::class,
         \App\Console\Commands\DownloadContracts::class,
         \App\Console\Commands\BuildIndex::class,
-        \App\Console\Commands\SendMail::class
+        \App\Console\Commands\SendMail::class,
+        \App\Console\Commands\RemoveOldContracts::class
     ];
 
     /**
@@ -31,9 +32,12 @@ class Kernel extends ConsoleKernel
                  ->hourly();
 
         $schedule->command('build:index')
-                 ->dailyAt('04:00');
+                 ->dailyAt('04:20');
 
         $schedule->command('send:mail')
-                 ->dailyAt('05:00');
+                 ->dailyAt('05:40');
+
+        $schedule->command('remove:old-contracts')
+                 ->dailyAt('01:30');
     }
 }

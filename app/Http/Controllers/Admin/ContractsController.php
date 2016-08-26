@@ -23,8 +23,9 @@ class ContractsController extends Controller
     public function index()
     {
         $contracts = Contract::latest()->paginate(10);
+        $total = Contract::count();
 
-        return view('admin.contracts.index', compact('contracts'));
+        return view('admin.contracts.index', compact('contracts', 'total'));
     }
 
     public function setup()
