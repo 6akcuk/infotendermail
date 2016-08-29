@@ -73,6 +73,7 @@ class ContractsController extends Controller
 
         $client = ClientBuilder::create()->build();
 
+        $must = [];
         $must_not = [];
         $should = [];
         $must_not_org = [];
@@ -86,7 +87,7 @@ class ContractsController extends Controller
         foreach ($match as $m) {
             if (!$m) continue;
 
-            $should[] = [
+            $must[] = [
                 'match' => [
                     'name.russian' => [
                         'query' => $m,
@@ -143,6 +144,7 @@ class ContractsController extends Controller
 
         $filtered['query'] = [
             'bool' => [
+                'must' => $must,
                 'should' => $should,
                 'must_not' => $must_not,
             ]
