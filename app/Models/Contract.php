@@ -45,26 +45,26 @@ class Contract extends Model
         $match_org = explode(',', $criterias['match_org']);
         $not_org = explode(',', $criterias['exclude_org']);
 
-        //foreach ($match as $m) {
-        //    if (!$m) continue;
-        if (sizeof($match)) {
+        foreach ($match as $m) {
+            if (!$m) continue;
+
             $must[] = [
                 'match' => [
                     'name.russian' => [
-                        'query' => implode(' ', $match),
-                        'operator' => 'or'
+                        'query' => $m,
+                        'operator' => 'and'
                     ]
                 ]
             ];
         }
-        //foreach ($not as $n) {
-        //    if (!$n) continue;
-        if (sizeof($not)) {
+        foreach ($not as $n) {
+            if (!$n) continue;
+
             $must_not[] = [
                 'match' => [
                     'name.russian' => [
-                        'query' => implode(' ', $not),
-                        'operator' => 'or'
+                        'query' => $n,
+                        'operator' => 'and'
                     ]
                 ]
             ];
@@ -105,9 +105,13 @@ class Contract extends Model
 
         $filtered['query'] = [
             'bool' => [
-                'must' => $must,
+                'must' => [
+                    'bool' => [
+                        'should' => $must
+                    ]
+                ],
                 'should' => $should,
-                'must_not' => $must_not,
+                'must_not' => $must_not
             ]
         ];
 
