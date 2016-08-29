@@ -15,8 +15,8 @@
     <div class="form-group {{ $errors->has('regions') ? 'has-error' : '' }}">
       <div class="col-sm-2">
         {!! Form::label('regions', 'Выборка по регионам:', ['class' => 'control-label']) !!}
-
-        <a onclick="selectedAll = !selectedAll; $('#regions option').prop('selected', selectedAll);">Выбрать / Отменить все регионы</a>
+        <br>
+        <a onclick="selectAllRegions()">Выбрать / Отменить все регионы</a>
       </div>
       <div class="col-sm-10">
         {!! Form::select('regions[]', $regions, null, ['id' => 'regions', 'class' => 'form-control', 'multiple']) !!}
@@ -91,6 +91,12 @@
     <script src="js/plugins/tagsinput/tagsinput.js"></script>
     <script>
         var selectedAll = false;
+
+        function selectAllRegions() {
+          selectedAll = !selectedAll; 
+
+          $('#regions option').prop('selected', selectedAll);
+        }
 
         $('#match, #exclude, #match_org, #exclude_org').tagsInput({
             autocomplete_url: '/api/tags',
