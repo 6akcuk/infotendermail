@@ -91,7 +91,7 @@ class ContractsController extends Controller
                 'match' => [
                     'name.russian' => [
                         'query' => $m,
-                        'operator' => 'and'
+                        'operator' => 'or'
                     ]
                 ]
             ];

@@ -13,7 +13,11 @@
     {!! Form::model($criterias, ['route' => 'admin.contracts.setup', 'class' => 'form-horizontal']) !!}
     <!-- Выборка по регионам Form Input -->
     <div class="form-group {{ $errors->has('regions') ? 'has-error' : '' }}">
-      {!! Form::label('regions', 'Выборка по регионам:', ['class' => 'col-sm-2 control-label']) !!}
+      <div class="col-sm-2">
+        {!! Form::label('regions', 'Выборка по регионам:', ['class' => 'control-label']) !!}
+
+        <a onclick="selectedAll = !selectedAll; $('#regions option').attr('selected', selectedAll);">Выбрать / Отменить все регионы</a>
+      </div>
       <div class="col-sm-10">
         {!! Form::select('regions[]', $regions, null, ['id' => 'regions', 'class' => 'form-control', 'multiple']) !!}
         {!! $errors->first('regions', '<span class="help-block">:message</span>') !!}
@@ -86,6 +90,8 @@
     <script src="js/autocomplete-ui.min.js"></script>
     <script src="js/plugins/tagsinput/tagsinput.js"></script>
     <script>
+        var selectedAll = false;
+
         $('#match, #exclude, #match_org, #exclude_org').tagsInput({
             autocomplete_url: '/api/tags',
             defaultText: 'Добавьте слова',
