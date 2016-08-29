@@ -16,7 +16,7 @@
       <div class="col-sm-2">
         {!! Form::label('regions', 'Выборка по регионам:', ['class' => 'control-label']) !!}
 
-        <a onclick="selectedAll = !selectedAll; $('#regions option').attr('selected', selectedAll);">Выбрать / Отменить все регионы</a>
+        <a onclick="selectedAll = !selectedAll; $('#regions option').prop('selected', selectedAll);">Выбрать / Отменить все регионы</a>
       </div>
       <div class="col-sm-10">
         {!! Form::select('regions[]', $regions, null, ['id' => 'regions', 'class' => 'form-control', 'multiple']) !!}
