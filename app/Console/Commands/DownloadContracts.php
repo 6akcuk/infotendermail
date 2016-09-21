@@ -75,8 +75,10 @@ class DownloadContracts extends Command
 
     protected function makeRequest(Client $client, $pageNumber = 1)
     {
-        return $client->request('GET', 'epz/order/quicksearch/search.html', [
+        return $client->request('GET', 'epz/order/quicksearch/search_eis.html', [
             'query' => [
+                'searchString' => '',
+                'morphology' => 'on',
                 'recordsPerPage' => '_50',
                 'fz44' => 'on',
                 'fz223' => 'on',
