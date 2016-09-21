@@ -61,6 +61,8 @@ class DownloadContracts extends Command
         $response = $this->makeRequest($client, 1);
         $crawler = new Crawler($response->getBody()->getContents(), 'http://zakupki.gov.ru/');
 
+        dd($response->getBody()->getContents());
+
         $this->parseTenders($client, $crawler);
 
         for ($p = 2; $p <= 40; $p++) {
