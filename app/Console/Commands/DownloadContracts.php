@@ -48,11 +48,16 @@ class DownloadContracts extends Command
      */
     public function handle()
     {
+        $useragents = file('resources/useragents.txt');
+
         $client = new Client([
             'base_uri' => 'http://zakupki.gov.ru/',
             'cookies' => true,
             'headers' => [
-                'User-Agent' => 'Mozilla'
+                'User-Agent' => $useragents[array_rand($useragents)]
+            ],
+            'proxy' => [
+                'http' => 'tcp://212.1.227.182:80'
             ]
         ]);
 
