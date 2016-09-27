@@ -61,7 +61,7 @@ class DownloadContracts extends Command
         Log::info('Connecting..');
 
         $response = $this->makeRequest($client, 1);
-        $crawler = new Crawler($response->getBody()->getContents(), 'http://zakupki.gov.ru/');
+        $crawler = new Crawler($response->getBody()->getContents(), 'http://zakupki.gov.ru/epz/main/public/home.html');
 
         dd($response->getBody()->getContents());
 
