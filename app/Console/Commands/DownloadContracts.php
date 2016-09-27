@@ -62,8 +62,6 @@ class DownloadContracts extends Command
 
         $response = $this->makeRequest($client, 1);
         $crawler = new Crawler((string) $response->getBody(), 'http://zakupki.gov.ru/');
-        
-        dd((string) $response->getBody());
 
         $this->parseTenders($client, $crawler);
 
@@ -71,7 +69,7 @@ class DownloadContracts extends Command
             $response = $this->makeRequest($client, $p);
             Log::info('Going to page'. $p);
 
-            $repeatSensor = $this->parseTenders($client, new Crawler($response->getBody()->getContents()));
+            $repeatSensor = $this->parseTenders($client, new Crawler((string) $response->getBody()));
 
             if ($repeatSensor >= 10) break;
         }
@@ -138,7 +136,7 @@ class DownloadContracts extends Command
 
                     $organizationResponse = $client->get($organizationUrl);
 
-                    $organizationCrawler = new Crawler($organizationResponse->getBody()->getContents());
+                    $organizationCrawler = new Crawler((string) $organizationResponse->getBody());
 
                     //Log::info('Информация по организации загружена.');
 
@@ -317,7 +315,7 @@ class DownloadContracts extends Command
                 //Log::info('Переходим на страницу контракта.');
 
                 $contractResponse = $client->get($contractUrl);
-                $contractCrawler = new Crawler($contractResponse->getBody()->getContents());
+                $contractCrawler = new Crawler((string) $contractResponse->getBody());
 
                 //Log::info('Страница контракта загружена.');
 
