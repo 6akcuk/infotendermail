@@ -55,9 +55,6 @@ class DownloadContracts extends Command
             'cookies' => true,
             'headers' => [
                 'User-Agent' => $useragents[array_rand($useragents)]
-            ],
-            'proxy' => [
-                'http' => 'tcp://212.1.227.182:80'
             ]
         ]);
 
