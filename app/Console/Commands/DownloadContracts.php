@@ -107,10 +107,8 @@ class DownloadContracts extends Command
 
             $contractName = trim($node->filter('td.descriptTenderTd > dl > dd')->eq(1)->text());
             $contractUrl = $node->filter('td.descriptTenderTd > dl > dt > a')->attr('href');
-            $contractType = trim($node->filter('td.tenderTd > dl > dt')->text());
-            $contractStatus = ($node->filter('td.tenderTd > dl > dd')->count())
-                                ? trim($node->filter('td.tenderTd > dl > dd')->text())
-                                : '';
+            $contractType = trim($node->filter('td.tenderTd > dl > dt')->eq(0)->text());
+            $contractStatus = '';
 
             /*Log::info('Обработка нового контракта', [
                 'org_name' => $organizationName,
@@ -329,7 +327,7 @@ class DownloadContracts extends Command
 
                 $price = str_replace(
                     ',', '.', preg_replace(
-                        "/([^0-9\.\,]*)/", '', trim($node->filter('td.tenderTd > dd')->eq(1)->text())
+                        "/([^0-9\.\,]*)/", '', trim($node->filter('td.tenderTd > dl > dd')->eq(1)->text())
                     )
                 );
 
