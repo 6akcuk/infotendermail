@@ -65,13 +65,13 @@ class DownloadContracts extends Command
 
         $this->parseTenders($client, $crawler);
 
-        for ($p = 2; $p <= 40; $p++) {
+        for ($p = 2; $p <= 100; $p++) {
             $response = $this->makeRequest($client, $p);
             Log::info('Going to page'. $p);
 
             $repeatSensor = $this->parseTenders($client, new Crawler((string) $response->getBody()));
-
-            if ($repeatSensor >= 10) break;
+            
+            if ($repeatSensor >= 50) break;
         }
     }
 
@@ -87,6 +87,8 @@ class DownloadContracts extends Command
                 'af' => 'on',
                 'ca' => 'on',
                 'pageNumber' => $pageNumber,
+                'publishDateFrom' => date('d.m.Y'),
+                'publishDateTo' => date('d.m.Y'),
                 'sortBy' => 'PUBLISH_DATE'
             ]
         ]);
