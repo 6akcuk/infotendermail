@@ -71,7 +71,7 @@ class DownloadContracts extends Command
 
             $repeatSensor = $this->parseTenders($client, new Crawler((string) $response->getBody()));
             
-            if ($repeatSensor >= 50) break;
+            //if ($repeatSensor >= 50) break;
         }
     }
 
