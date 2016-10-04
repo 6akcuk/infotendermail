@@ -63,9 +63,12 @@ class DownloadContracts extends Command
         $response = $this->makeRequest($client, 1);
         $crawler = new Crawler((string) $response->getBody(), 'http://zakupki.gov.ru/');
 
+        $total = (int) preg_replace("/[^0-9]*/", "", $crawler->filter('p.allRecords strong')->text());
+        $pages = (int) ceil($total / 500);
+        
         $this->parseTenders($client, $crawler);
 
-        for ($p = 2; $p <= 100; $p++) {
+        for ($p = 2; $p <= $pages; $p++) {
             $response = $this->makeRequest($client, $p);
             Log::info('Going to page'. $p);
 
@@ -81,7 +84,7 @@ class DownloadContracts extends Command
             'query' => [
                 'searchString' => '',
                 'morphology' => 'on',
-                'recordsPerPage' => '_50',
+                'recordsPerPage' => '_500',
                 'fz44' => 'on',
                 'fz223' => 'on',
                 'af' => 'on',
