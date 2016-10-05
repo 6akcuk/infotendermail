@@ -56,9 +56,9 @@ class DownloadContracts extends Command
             'headers' => [
                 'User-Agent' => $useragents[array_rand($useragents)],
             ],
-            'proxy' => [
+            /*'proxy' => [
                 'http' => 'tcp://212.1.227.182:80'
-            ]
+            ]*/
         ]);
 
         Log::info('Connecting..');
