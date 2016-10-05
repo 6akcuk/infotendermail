@@ -57,7 +57,7 @@ class DownloadContracts extends Command
                 'User-Agent' => $useragents[array_rand($useragents)],
             ],
             'proxy' => [
-                'http' => 'tcp://85.26.146.169:80'
+                'http' => 'tcp://212.1.227.182:80'
             ]
         ]);
 
