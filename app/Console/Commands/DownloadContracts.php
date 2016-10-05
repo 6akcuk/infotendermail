@@ -54,7 +54,10 @@ class DownloadContracts extends Command
             'base_uri' => 'http://zakupki.gov.ru/',
             'cookies' => true,
             'headers' => [
-                'User-Agent' => $useragents[array_rand($useragents)]
+                'User-Agent' => $useragents[array_rand($useragents)],
+            ],
+            'proxy' => [
+                'http' => 'tcp://85.26.146.169:80'
             ]
         ]);
 
