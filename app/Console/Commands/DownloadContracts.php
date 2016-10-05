@@ -68,12 +68,18 @@ class DownloadContracts extends Command
         
         $this->parseTenders($client, $crawler);
 
+        $maxContracts = 250;
+        $contractsNum = 0;
+
         for ($p = 2; $p <= $pages; $p++) {
             $response = $this->makeRequest($client, $p);
             Log::info('Going to page'. $p);
 
-            $repeatSensor = $this->parseTenders($client, new Crawler((string) $response->getBody()));
+            $contractsNum += $this->parseTenders($client, new Crawler((string) $response->getBody()));
             
+            if ($contractsNum >= $maxContracts) {
+                break;
+            }
             //if ($repeatSensor >= 50) break;
         }
     }
@@ -100,8 +106,9 @@ class DownloadContracts extends Command
     protected function parseTenders(Client $client, Crawler $crawler)
     {
         $repeatSensor = 0;
+        $contractsNum = 0;
 
-        $crawler->filter('div.registerBox')->each(function(Crawler $node, $i) use ($client, &$repeatSensor) {
+        $crawler->filter('div.registerBox')->each(function(Crawler $node, $i) use ($client, &$repeatSensor, &$contractsNum) {
             $systemId = str_replace('№ ', '', trim($node->filter('td.descriptTenderTd > dl > dt > a')->text()));
 
             $organizationNode = $node->filter('dd.nameOrganization > a');
@@ -391,6 +398,7 @@ class DownloadContracts extends Command
                 });
 
                 $contract->save();
+                $contractsNum++;
 
                 $this->info('Контракт '. $systemId .' '. $contractName);
 
@@ -404,6 +412,6 @@ class DownloadContracts extends Command
             usleep(rand(200, 2000) * 1000); // sleep for random time
         });
 
-        return $repeatSensor;
+        return $contractsNum;
     }
 }

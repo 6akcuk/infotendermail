@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('download:contracts')
-                 ->hourly();
+                 ->everyThirtyMinutes();
 
         $schedule->command('build:index')
                  ->dailyAt('04:20');
