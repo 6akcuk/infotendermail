@@ -13,6 +13,10 @@
 
 Route::any('/', 'IndexController@index');
 
+Route::any('/time', function () {
+    return time();
+});
+
 Route::controllers([
         'auth' => 'Auth\AuthController',
         'password' => 'Auth\PasswordController'
